@@ -2,6 +2,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class DatabaseConnection {
 
@@ -79,6 +80,31 @@ public class DatabaseConnection {
 
     } catch (Exception e) {
         System.out.println("Error adding book");
+        e.printStackTrace();
+    }
+
+    public static void viewBooks() {
+    try {
+        Connection conn = connect();
+
+        String sql = "SELECT * FROM books";
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(sql);
+
+        System.out.println("\n--- Book List ---");
+
+        while (rs.next()) {
+            System.out.println(
+                "ID: " + rs.getInt("book_id") +
+                ", Title: " + rs.getString("title") +
+                ", Author: " + rs.getString("author") +
+                ", Category: " + rs.getString("category") +
+                ", Status: " + rs.getString("availability_status")
+            );
+        }
+
+    } catch (Exception e) {
+        System.out.println("Error retrieving books");
         e.printStackTrace();
     }
 
