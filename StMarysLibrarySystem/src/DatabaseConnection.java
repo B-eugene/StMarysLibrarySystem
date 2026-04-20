@@ -82,32 +82,58 @@ public class DatabaseConnection {
         System.out.println("Error adding book");
         e.printStackTrace();
     }
+    }
+
 
     public static void viewBooks() {
+        try {
+            Connection conn = connect();
+
+            String sql = "SELECT * FROM books";
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+
+            System.out.println("\n--- Book List ---");
+
+            while (rs.next()) {
+                System.out.println(
+                    "ID: " + rs.getInt("book_id") +
+                    ", Title: " + rs.getString("title") +
+                    ", Author: " + rs.getString("author") +
+                    ", Category: " + rs.getString("category") +
+                    ", Status: " + rs.getString("availability_status")
+            );
+        }
+       
+
+        } catch (Exception e) {
+            System.out.println("Error retrieving books");
+            e.printStackTrace();
+        }
+    }
+
+
+    public static void deleteBook(int id) {
     try {
         Connection conn = connect();
 
-        String sql = "SELECT * FROM books";
-        Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery(sql);
+        String sql = "DELETE FROM books WHERE book_id = ?";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
 
-        System.out.println("\n--- Book List ---");
+        pstmt.setInt(1, id);
 
-        while (rs.next()) {
-            System.out.println(
-                "ID: " + rs.getInt("book_id") +
-                ", Title: " + rs.getString("title") +
-                ", Author: " + rs.getString("author") +
-                ", Category: " + rs.getString("category") +
-                ", Status: " + rs.getString("availability_status")
-            );
+        int rowsAffected = pstmt.executeUpdate();
+
+        if (rowsAffected > 0) {
+            System.out.println("Book deleted successfully");
+        } else {
+            System.out.println("Book not found");
         }
 
     } catch (Exception e) {
-        System.out.println("Error retrieving books");
+        System.out.println("Error deleting book");
         e.printStackTrace();
     }
-
 }
 }
 
