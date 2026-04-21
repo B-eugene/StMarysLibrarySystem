@@ -20,6 +20,9 @@ public class DatabaseConnection {
         }
     }
 
+
+
+    //Creating the table
     public static void createTables() {
     try {
         Connection conn = connect();
@@ -59,7 +62,11 @@ public class DatabaseConnection {
         System.out.println("Error creating tables");
         e.printStackTrace();
     }
+    }
 
+    
+    
+    //Adding books
     public static void addBook(int id, String title, String author, String category, String status) {
     try {
         Connection conn = connect();
@@ -85,6 +92,8 @@ public class DatabaseConnection {
     }
 
 
+
+    //Viewing books
     public static void viewBooks() {
         try {
             Connection conn = connect();
@@ -113,6 +122,8 @@ public class DatabaseConnection {
     }
 
 
+
+    //deleting books
     public static void deleteBook(int id) {
     try {
         Connection conn = connect();
@@ -134,6 +145,84 @@ public class DatabaseConnection {
         System.out.println("Error deleting book");
         e.printStackTrace();
     }
+    }
+
+
+
+    //updating books
+    public static void updateBook(int id, String title, String author, String category, String status) {
+    try {
+        Connection conn = connect();
+
+        String sql = "UPDATE books SET title = ?, author = ?, category = ?, availability_status = ? WHERE book_id = ?";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+
+        pstmt.setString(1, title);
+        pstmt.setString(2, author);
+        pstmt.setString(3, category);
+        pstmt.setString(4, status);
+        pstmt.setInt(5, id);
+
+        int rowsAffected = pstmt.executeUpdate();
+
+        if (rowsAffected > 0) {
+            System.out.println("Book updated successfully");
+        } else {
+            System.out.println("Book not found");
+        }
+
+    } catch (Exception e) {
+        System.out.println("Error updating book");
+        e.printStackTrace();
+    }
+    }
+
+    public static void addMember(int id, String name, String email, String type) {
+    try {
+        Connection conn = connect();
+
+        String sql = "INSERT INTO members (member_id, member_name, email, membership_type) VALUES (?, ?, ?, ?)";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+
+        pstmt.setInt(1, id);
+        pstmt.setString(2, name);
+        pstmt.setString(3, email);
+        pstmt.setString(4, type);
+
+        pstmt.executeUpdate();
+
+        System.out.println("Member added successfully");
+
+    } catch (Exception e) {
+        System.out.println("Error adding member");
+        e.printStackTrace();
+    }
+    }
+
+    public static void viewMembers() {
+    try {
+        Connection conn = connect();
+
+        String sql = "SELECT * FROM members";
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(sql);
+
+        System.out.println("\n--- Member List ---");
+
+        while (rs.next()) {
+            System.out.println(
+                "ID: " + rs.getInt("member_id") +
+                ", Name: " + rs.getString("member_name") +
+                ", Email: " + rs.getString("email") +
+                ", Type: " + rs.getString("membership_type")
+            );
+        }
+
+    } catch (Exception e) {
+        System.out.println("Error retrieving members");
+        e.printStackTrace();
+    }
+
 }
 }
 

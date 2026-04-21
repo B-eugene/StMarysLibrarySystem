@@ -13,7 +13,9 @@ public class LibrarySystem {
             System.out.println("2. View Books");
             System.out.println("3. Delete Book");
             System.out.println("4. Update Book");
-            System.out.println("5. Exit");
+            System.out.println("5. Add Member");
+            System.out.println("6. View Members");
+            System.out.println("7. Exit");
             System.out.print("Enter your choice: ");
 
             choice = scanner.nextInt();
@@ -71,6 +73,27 @@ public class LibrarySystem {
                     break;
 
                 case 5:
+                    System.out.print("Enter Member ID: ");
+                    int mId = scanner.nextInt();
+                    scanner.nextLine();
+
+                    System.out.print("Enter Name: ");
+                    String name = scanner.nextLine();
+
+                    System.out.print("Enter Email: ");
+                    String email = scanner.nextLine();
+
+                    System.out.print("Enter Membership Type: ");
+                    String type = scanner.nextLine();
+
+                    DatabaseConnection.addMember(mId, name, email, type);
+                    break;
+
+                case 6:
+                    DatabaseConnection.viewMembers();
+                    break;
+
+                case 7:
                     System.out.println("Exiting system...");
                     break;
 
@@ -78,7 +101,7 @@ public class LibrarySystem {
                     System.out.println("Invalid choice");
             }
 
-        } while (choice != 5);
+        } while (choice != 7);
 
         scanner.close();
     }
