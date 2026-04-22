@@ -15,7 +15,9 @@ public class LibrarySystem {
             System.out.println("4. Update Book");
             System.out.println("5. Add Member");
             System.out.println("6. View Members");
-            System.out.println("7. Exit");
+            System.out.println("7. Borrow Book");
+            System.out.println("8. View Borrow Records");
+            System.out.println("9. Exit");
             System.out.print("Enter your choice: ");
 
             choice = scanner.nextInt();
@@ -94,6 +96,33 @@ public class LibrarySystem {
                     break;
 
                 case 7:
+                    System.out.print("Enter Record ID: ");
+                    int rId = scanner.nextInt();
+
+                    System.out.print("Enter Book ID: ");
+                    int bId = scanner.nextInt();
+
+                    System.out.print("Enter Member ID: ");
+                    int memId = scanner.nextInt();
+                    scanner.nextLine();
+
+                    System.out.print("Enter Borrow Date: ");
+                    String borrowDate = scanner.nextLine();
+
+                    System.out.print("Enter Due Date: ");
+                    String dueDate = scanner.nextLine();
+
+                    System.out.print("Enter Status: ");
+                    String borrowstatus = scanner.nextLine();
+
+                    DatabaseConnection.borrowBook(rId, bId, memId, borrowDate, dueDate, borrowstatus);
+                    break;
+
+                case 8:
+                    DatabaseConnection.viewBorrowRecords();
+                    break;
+
+                case 9:
                     System.out.println("Exiting system...");
                     break;
 
@@ -101,7 +130,7 @@ public class LibrarySystem {
                     System.out.println("Invalid choice");
             }
 
-        } while (choice != 7);
+        } while (choice != 9);
 
         scanner.close();
     }

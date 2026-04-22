@@ -177,6 +177,9 @@ public class DatabaseConnection {
     }
     }
 
+
+
+    //Adding members
     public static void addMember(int id, String name, String email, String type) {
     try {
         Connection conn = connect();
@@ -199,6 +202,9 @@ public class DatabaseConnection {
     }
     }
 
+
+
+    //Viewing members
     public static void viewMembers() {
     try {
         Connection conn = connect();
@@ -222,6 +228,64 @@ public class DatabaseConnection {
         System.out.println("Error retrieving members");
         e.printStackTrace();
     }
+    }
+
+
+
+    //Stores book borrowing information
+    public static void borrowBook(int recordId, int bookId, int memberId, String borrowDate, String dueDate, String status) {
+    try {
+        Connection conn = connect();
+
+        String sql = "INSERT INTO borrow_records (record_id, book_id, member_id, borrow_date, due_date, return_status) VALUES (?, ?, ?, ?, ?, ?)";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+
+        pstmt.setInt(1, recordId);
+        pstmt.setInt(2, bookId);
+        pstmt.setInt(3, memberId);
+        pstmt.setString(4, borrowDate);
+        pstmt.setString(5, dueDate);
+        pstmt.setString(6, status);
+
+        pstmt.executeUpdate();
+
+        System.out.println("Book borrowed successfully");
+
+    } catch (Exception e) {
+        System.out.println("Error borrowing book");
+        e.printStackTrace();
+    }
+    }
+
+
+
+    //View book borrowing information
+    public static void viewBorrowRecords() {
+    try {
+        Connection conn = connect();
+
+        String sql = "SELECT * FROM borrow_records";
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(sql);
+
+        System.out.println("\n--- Borrow Records ---");
+
+        while (rs.next()) {
+            System.out.println(
+                "Record ID: " + rs.getInt("record_id") +
+                ", Book ID: " + rs.getInt("book_id") +
+                ", Member ID: " + rs.getInt("member_id") +
+                ", Borrow Date: " + rs.getString("borrow_date") +
+                ", Due Date: " + rs.getString("due_date") +
+                ", Status: " + rs.getString("return_status")
+            );
+        }
+
+    } catch (Exception e) {
+        System.out.println("Error retrieving borrow records");
+        e.printStackTrace();
+    }
+    
 
 }
 }
