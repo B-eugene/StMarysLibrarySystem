@@ -17,7 +17,8 @@ public class LibrarySystem {
             System.out.println("6. View Members");
             System.out.println("7. Borrow Book");
             System.out.println("8. View Borrow Records");
-            System.out.println("9. Exit");
+            System.out.println("9. Return Book");
+            System.out.println("10. Exit");
             System.out.print("Enter your choice: ");
 
             choice = scanner.nextInt();
@@ -123,6 +124,16 @@ public class LibrarySystem {
                     break;
 
                 case 9:
+                    System.out.print("Enter Record ID: ");
+                    int recordId = scanner.nextInt();
+
+                    System.out.print("Enter Book ID: ");
+                    int returnBookId = scanner.nextInt();
+
+                    DatabaseConnection.returnBook(recordId, returnBookId);
+                    break;
+
+                case 10:
                     System.out.println("Exiting system...");
                     break;
 
@@ -130,7 +141,7 @@ public class LibrarySystem {
                     System.out.println("Invalid choice");
             }
 
-        } while (choice != 9);
+        } while (choice != 10);
 
         scanner.close();
     }

@@ -3,30 +3,24 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class DatabaseConnection {
 
     private static final String URL = "jdbc:sqlite:library.db";
 
-    public static Connection connect() {
-        try {
-            Connection conn = DriverManager.getConnection(URL);
-            System.out.println("Connected to SQLite database");
-            return conn;
-        } catch (Exception e) {
-            System.out.println("Connection failed");
-            e.printStackTrace();
-            return null;
-        }
-    }
+    public static Connection connect() throws SQLException {
+    Connection conn = DriverManager.getConnection(URL);
+    System.out.println("Connected to SQLite database");
+    return conn;
+}
 
 
 
     //Creating the table
     public static void createTables() {
-    try {
-        Connection conn = connect();
-        Statement stmt = conn.createStatement();
+    try (Connection conn = connect();
+         Statement stmt = conn.createStatement()) {
 
         String booksTable = "CREATE TABLE IF NOT EXISTS books (" +
                 "book_id INTEGER PRIMARY KEY," +
@@ -68,12 +62,13 @@ public class DatabaseConnection {
     
     //Adding books
     public static void addBook(int id, String title, String author, String category, String status) {
-    try {
-        Connection conn = connect();
+    
 
         String sql = "INSERT INTO books (book_id, title, author, category, availability_status) VALUES (?, ?, ?, ?, ?)";
+    
+        try (Connection conn = connect();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
         
-        PreparedStatement pstmt = conn.prepareStatement(sql);
 
         pstmt.setInt(1, id);
         pstmt.setString(2, title);
@@ -95,12 +90,12 @@ public class DatabaseConnection {
 
     //Viewing books
     public static void viewBooks() {
-        try {
-            Connection conn = connect();
-
+        
             String sql = "SELECT * FROM books";
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery(sql);
+        
+        try (Connection conn = connect();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
 
             System.out.println("\n--- Book List ---");
 
@@ -125,11 +120,12 @@ public class DatabaseConnection {
 
     //deleting books
     public static void deleteBook(int id) {
-    try {
-        Connection conn = connect();
+
 
         String sql = "DELETE FROM books WHERE book_id = ?";
-        PreparedStatement pstmt = conn.prepareStatement(sql);
+    
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
         pstmt.setInt(1, id);
 
@@ -151,11 +147,13 @@ public class DatabaseConnection {
 
     //updating books
     public static void updateBook(int id, String title, String author, String category, String status) {
-    try {
-        Connection conn = connect();
+    
 
         String sql = "UPDATE books SET title = ?, author = ?, category = ?, availability_status = ? WHERE book_id = ?";
-        PreparedStatement pstmt = conn.prepareStatement(sql);
+        
+
+        try (Connection conn = connect();
+        PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
         pstmt.setString(1, title);
         pstmt.setString(2, author);
@@ -181,11 +179,12 @@ public class DatabaseConnection {
 
     //Adding members
     public static void addMember(int id, String name, String email, String type) {
-    try {
-        Connection conn = connect();
+    
 
         String sql = "INSERT INTO members (member_id, member_name, email, membership_type) VALUES (?, ?, ?, ?)";
-        PreparedStatement pstmt = conn.prepareStatement(sql);
+        
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
         pstmt.setInt(1, id);
         pstmt.setString(2, name);
@@ -206,12 +205,11 @@ public class DatabaseConnection {
 
     //Viewing members
     public static void viewMembers() {
-    try {
-        Connection conn = connect();
 
         String sql = "SELECT * FROM members";
-        Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery(sql);
+        try (Connection conn = connect();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
 
         System.out.println("\n--- Member List ---");
 
@@ -232,41 +230,72 @@ public class DatabaseConnection {
 
 
 
-    //Stores book borrowing information
-    public static void borrowBook(int recordId, int bookId, int memberId, String borrowDate, String dueDate, String status) {
-    try {
-        Connection conn = connect();
+    
+   public static void borrowBook(int recordId, int bookId, int memberId, String borrowDate, String dueDate, String status) {
 
+    try (Connection conn = connect()) {
+
+        String checkSql = "SELECT availability_status FROM books WHERE book_id = ?";
+
+        try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
+
+            checkStmt.setInt(1, bookId);
+
+            try (ResultSet rs = checkStmt.executeQuery()) {
+
+                if (rs.next()) {
+                    String currentStatus = rs.getString("availability_status");
+
+                    if (!currentStatus.equalsIgnoreCase("Available")) {
+                        System.out.println("Book is not available");
+                        return;
+                    }
+                } else {
+                    System.out.println("Book not found");
+                    return;
+                }
+            }
+        }
+
+        // Inputing the borrow record
         String sql = "INSERT INTO borrow_records (record_id, book_id, member_id, borrow_date, due_date, return_status) VALUES (?, ?, ?, ?, ?, ?)";
-        PreparedStatement pstmt = conn.prepareStatement(sql);
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-        pstmt.setInt(1, recordId);
-        pstmt.setInt(2, bookId);
-        pstmt.setInt(3, memberId);
-        pstmt.setString(4, borrowDate);
-        pstmt.setString(5, dueDate);
-        pstmt.setString(6, status);
+            pstmt.setInt(1, recordId);
+            pstmt.setInt(2, bookId);
+            pstmt.setInt(3, memberId);
+            pstmt.setString(4, borrowDate);
+            pstmt.setString(5, dueDate);
+            pstmt.setString(6, status);
 
-        pstmt.executeUpdate();
+            pstmt.executeUpdate();
+        }
+
+        // Update the status of the book
+        String updateSql = "UPDATE books SET availability_status = 'Borrowed' WHERE book_id = ?";
+        try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+
+            updateStmt.setInt(1, bookId);
+            updateStmt.executeUpdate();
+        }
 
         System.out.println("Book borrowed successfully");
 
-    } catch (Exception e) {
+    } catch (SQLException e) {
         System.out.println("Error borrowing book");
         e.printStackTrace();
     }
-    }
-
+}
 
 
     //View book borrowing information
     public static void viewBorrowRecords() {
-    try {
-        Connection conn = connect();
+    
 
         String sql = "SELECT * FROM borrow_records";
-        Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery(sql);
+        try (Connection conn = connect();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
 
         System.out.println("\n--- Borrow Records ---");
 
@@ -285,10 +314,36 @@ public class DatabaseConnection {
         System.out.println("Error retrieving borrow records");
         e.printStackTrace();
     }
-    
+    }
+
+
+    //Return system
+    public static void returnBook(int recordId, int bookId) {
+        try (Connection conn = connect()) {
+
+        // Updates the borrow records 
+        String updateRecord = "UPDATE borrow_records SET return_status = 'Returned' WHERE record_id = ?";
+        PreparedStatement pstmt1 = conn.prepareStatement(updateRecord);
+        pstmt1.setInt(1, recordId);
+        pstmt1.executeUpdate();
+
+        // Updates the availability of the book
+        String updateBook = "UPDATE books SET availability_status = 'Available' WHERE book_id = ?";
+        PreparedStatement pstmt2 = conn.prepareStatement(updateBook);
+        pstmt2.setInt(1, bookId);
+        pstmt2.executeUpdate();
+
+        System.out.println("Book returned successfully");
+
+    } catch (Exception e) {
+        System.out.println("Error returning book");
+        e.printStackTrace();
+    }
 
 }
 }
+
+
 
 
 
