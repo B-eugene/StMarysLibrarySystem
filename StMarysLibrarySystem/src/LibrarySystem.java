@@ -19,6 +19,9 @@ public class LibrarySystem {
             System.out.println("8. View Borrow Records");
             System.out.println("9. Return Book");
             System.out.println("10. Exit");
+            System.out.println("11. Search Books");
+            System.out.println("12. Search Members");
+            System.out.println("13. Search Borrow Records");
             System.out.print("Enter your choice: ");
 
             choice = scanner.nextInt();
@@ -132,6 +135,25 @@ public class LibrarySystem {
 
                     DatabaseConnection.returnBook(recordId, returnBookId);
                     break;
+
+                case 11:
+                    System.out.print("Enter keyword: ");
+                    String keyword = scanner.next();
+                    DatabaseConnection.searchBooks(keyword);
+                    break;
+
+                case 12:
+                    System.out.print("Enter keyword: ");
+                    String memberKeyword = scanner.next();
+                    DatabaseConnection.searchMembers(memberKeyword);
+                    break;
+                
+                case 13:
+                    System.out.print("Enter ID (record/book/member): ");
+                    String borrowKeyword = scanner.next();
+                    DatabaseConnection.searchBorrowRecords(borrowKeyword);
+                    break;
+
 
                 case 10:
                     System.out.println("Exiting system...");

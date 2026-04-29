@@ -288,6 +288,7 @@ public class DatabaseConnection {
 }
 
 
+
     //View book borrowing information
     public static void viewBorrowRecords() {
     
@@ -337,6 +338,122 @@ public class DatabaseConnection {
 
     } catch (Exception e) {
         System.out.println("Error returning book");
+        e.printStackTrace();
+    }
+    }
+
+
+
+    public static void searchBooks(String keyword) {
+    String sql = "SELECT * FROM books WHERE title LIKE ? OR author LIKE ? OR book_id = ?";
+
+    try (Connection conn = connect();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+        pstmt.setString(1, "%" + keyword + "%");
+        pstmt.setString(2, "%" + keyword + "%");
+
+        try {
+            pstmt.setInt(3, Integer.parseInt(keyword));
+        } catch (Exception e) {
+            pstmt.setInt(3, -1); // if not a number
+        }
+
+        ResultSet rs = pstmt.executeQuery();
+
+        System.out.println("\n--- Search Results ---");
+
+        while (rs.next()) {
+            System.out.println(
+                "ID: " + rs.getInt("book_id") +
+                ", Title: " + rs.getString("title") +
+                ", Author: " + rs.getString("author") +
+                ", Category: " + rs.getString("category") +
+                ", Status: " + rs.getString("availability_status")
+            );
+        }
+
+    } catch (Exception e) {
+        System.out.println("Error searching books");
+        e.printStackTrace();
+    }
+    }
+    
+
+
+
+    public static void searchMembers(String keyword) {
+    String sql = "SELECT * FROM members WHERE member_name LIKE ? OR email LIKE ? OR member_id = ?";
+
+    try (Connection conn = connect();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+        pstmt.setString(1, "%" + keyword + "%");
+        pstmt.setString(2, "%" + keyword + "%");
+
+        try {
+            pstmt.setInt(3, Integer.parseInt(keyword));
+        } catch (Exception e) {
+            pstmt.setInt(3, -1);
+        }
+
+        ResultSet rs = pstmt.executeQuery();
+
+        System.out.println("\n--- Member Search Results ---");
+
+        while (rs.next()) {
+            System.out.println(
+                "ID: " + rs.getInt("member_id") +
+                ", Name: " + rs.getString("member_name") +
+                ", Email: " + rs.getString("email") +
+                ", Type: " + rs.getString("membership_type")
+            );
+        }
+
+    } catch (Exception e) {
+        System.out.println("Error searching members");
+        e.printStackTrace();
+    }
+    }
+
+
+
+    public static void searchBorrowRecords(String keyword) {
+    String sql = "SELECT * FROM borrow_records WHERE book_id = ? OR member_id = ? OR record_id = ?";
+
+    try (Connection conn = connect();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+        int value;
+
+        try {
+            value = Integer.parseInt(keyword);
+        } catch (Exception e) {
+            System.out.println("Enter a valid numeric ID");
+            return;
+        }
+
+        pstmt.setInt(1, value);
+        pstmt.setInt(2, value);
+        pstmt.setInt(3, value);
+
+        ResultSet rs = pstmt.executeQuery();
+
+        System.out.println("\n--- Borrow Record Search Results ---");
+
+        while (rs.next()) {
+            System.out.println(
+                "Record ID: " + rs.getInt("record_id") +
+                ", Book ID: " + rs.getInt("book_id") +
+                ", Member ID: " + rs.getInt("member_id") +
+                ", Borrow Date: " + rs.getString("borrow_date") +
+                ", Due Date: " + rs.getString("due_date") +
+                ", Status: " + rs.getString("return_status")
+            );
+        }
+
+    } catch (Exception e) {
+        System.out.println("Error searching borrow records");
         e.printStackTrace();
     }
 
