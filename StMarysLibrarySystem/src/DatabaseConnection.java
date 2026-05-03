@@ -63,6 +63,10 @@ public class DatabaseConnection {
     //Adding books
     public static void addBook(int id, String title, String author, String category, String status) {
     
+        if (bookExists(id)) {
+        System.out.println("Book ID already exists");
+        return;
+        }
 
         String sql = "INSERT INTO books (book_id, title, author, category, availability_status) VALUES (?, ?, ?, ?, ?)";
     
@@ -179,8 +183,12 @@ public class DatabaseConnection {
 
     //Adding members
     public static void addMember(int id, String name, String email, String type) {
-    
 
+        if (!email.contains("@") || !email.contains(".")) {
+        System.out.println("Invalid email format");
+        return;
+        }
+    
         String sql = "INSERT INTO members (member_id, member_name, email, membership_type) VALUES (?, ?, ?, ?)";
         
         try (Connection conn = connect();
@@ -235,6 +243,16 @@ public class DatabaseConnection {
 
     try (Connection conn = connect()) {
 
+        if (!memberExists(memberId)) {
+        System.out.println("Member does not exist");
+        return;
+        }
+
+        if (dueDate.compareTo(borrowDate) < 0) {
+        System.out.println("Due date must be after borrow date");
+        return;
+        }
+
         String checkSql = "SELECT availability_status FROM books WHERE book_id = ?";
 
         try (PreparedStatement checkStmt = conn.prepareStatement(checkSql)) {
@@ -256,6 +274,8 @@ public class DatabaseConnection {
                 }
             }
         }
+
+
 
         // Inputing the borrow record
         String sql = "INSERT INTO borrow_records (record_id, book_id, member_id, borrow_date, due_date, return_status) VALUES (?, ?, ?, ?, ?, ?)";
@@ -318,10 +338,25 @@ public class DatabaseConnection {
     }
 
 
+
     //Return system
     public static void returnBook(int recordId, int bookId) {
         try (Connection conn = connect()) {
 
+            String checkSql = "SELECT return_status FROM borrow_records WHERE record_id = ?";
+            PreparedStatement checkStmt = conn.prepareStatement(checkSql);
+            checkStmt.setInt(1, recordId);
+            ResultSet rs = checkStmt.executeQuery();
+
+            if (!rs.next()) {
+            System.out.println("Record not found");
+            return;
+            }
+
+            if (rs.getString("return_status").equalsIgnoreCase("Returned")) {
+            System.out.println("Book already returned");
+            return;
+            }
         // Updates the borrow records 
         String updateRecord = "UPDATE borrow_records SET return_status = 'Returned' WHERE record_id = ?";
         PreparedStatement pstmt1 = conn.prepareStatement(updateRecord);
@@ -455,6 +490,44 @@ public class DatabaseConnection {
     } catch (Exception e) {
         System.out.println("Error searching borrow records");
         e.printStackTrace();
+    }
+    }
+
+
+
+    public static boolean bookExists(int bookId) {
+    String sql = "SELECT 1 FROM books WHERE book_id = ?";
+
+    try (Connection conn = connect();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+        pstmt.setInt(1, bookId);
+        ResultSet rs = pstmt.executeQuery();
+
+        return rs.next();
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return false;
+    }
+    }
+
+
+
+    public static boolean memberExists(int memberId) {
+    String sql = "SELECT 1 FROM members WHERE member_id = ?";
+
+    try (Connection conn = connect();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+        pstmt.setInt(1, memberId);
+        ResultSet rs = pstmt.executeQuery();
+
+        return rs.next();
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        return false;
     }
 
 }
